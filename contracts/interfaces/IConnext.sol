@@ -16,4 +16,4 @@ interface IConnext {
   }
 
   function xcall(XCallArgs calldata _args) external payable returns (bytes32);
-}   
+}

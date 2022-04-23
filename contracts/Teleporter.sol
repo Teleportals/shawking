@@ -6,11 +6,14 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
-
 import "./interfaces/IConnext.sol";
+import "./interfaces/ILoanProvider.sol";
 
 contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
+
   IConnext public immutable connext;
+
+  mapping(address => address) loanproviders;
 
   constructor(address _connext) ERC1155("") {
     connext = IConnext(_connext);
@@ -27,11 +30,17 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     uint256 debtAmount
   ) external {
     // 1.- check and validate inputs
+
     // 2.- payback debt on-behalf of user
-    // 3.- withdraw collateral on-behalf of user
+    IERC20(debtAsset).approve(loanProviderA, debtAmount);
+    ILoanProvider(loanProviderA).paybackOnBehalf(debtAsset, debtAmount, msg.sender);
+
+    // 3.- Transfer collateral of user
+
     // 4.- keep control of user collateral
+    //TODO withdraw on behalf of user
+
     // 5.- construct xcall to bridge collateral
-    // 6.- make xcall
 
     //Approve tokens for bridging
     IERC20 token = IERC20(collateralAsset);
@@ -61,6 +70,8 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
       transactingAssetId: collateralAsset,
       amount: collateralAmount
     });
+
+    // 6.- make xcall
 
     connext.xcall(xcallArgs);
   }

@@ -15,8 +15,8 @@ const aaveV3Mappings = {
     address: "0xb18d016cDD2d9439A19f15633005A6b2cd6Aa774",
     aToken: "0x50b283C17b0Fc2a36c550A57B1a133459F4391B3",
     debtToken: "0x0EfFd205184FE944f9eF80264b144270dB15eEa7",
-  }
-}
+  },
+};
 
 const providers = {
   rinkeby: {
@@ -34,7 +34,7 @@ async function main() {
   );
 
   await teleporter.deployed();
-  console.log("Teleporter deployed to:", teleporter.address)
+  console.log("Teleporter deployed to:", teleporter.address);
 
   const AaveV3 = await hre.ethers.getContractFactory("AaveV3");
   const aavev3 = await AaveV3.deploy(

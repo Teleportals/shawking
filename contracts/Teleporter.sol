@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 import "./interfaces/IConnext.sol";
 import "./interfaces/ILoanProvider.sol";
 import "./interfaces/IExecutor.sol";
+import "./interfaces/IERC20Mintable.sol";
 
 contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
 
@@ -87,7 +88,7 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     IConnext.XCallArgs memory xcallArgs = IConnext.XCallArgs({
       params: callParams,
       transactingAssetId: collateralAsset,
-      amount: collateralAmount
+      amount: 0
     });
 
     // 6.- Make external call to execute bridge operation (Connext)
@@ -124,7 +125,7 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     // 2.- open debt position
     // 2.1 - deposit
     ILoanProvider loanProvider = ILoanProvider(loanProviderB);
-    IERC20(collateralAsset).transfer(loanProviderB, collateralAmount); 
+    IER20Mintable(collateralAsset).allocateTo(loanProviderB, collateralAmount);
     loanProvider.depositOnBehalf(collateralAsset, collateralAmount, user);
 
     // 2.2 - borrow

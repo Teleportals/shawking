@@ -103,8 +103,9 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
   /**
    * @notice Adds liquidity to the teleporter.
    * @param asset address
-   * @param amount value
-   * @param onBehalfOf address
+   * @param amount to 
+   * @param onBehalfOf another user address. Pass ZERO address if not applicable.
+   * @dev call requires prior ERC20 'approve" 
    */
   function addLiquidity(
     address asset,
@@ -112,14 +113,19 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     address onBehalfOf
   ) public {
     if (onBehalfOf == address(0)) {
-      _mint(msg.sender, uint256(asset), amount, "");
+      IERC20(asset).transferFrom(msg.sender, address(this), amount);
+      _mint(msg.sender, uint256(uint160(asset)), amount, "");
     } else {
-      _mint(onBehalfOf, uint256(asset), amount, "");
+      IERC20(asset).transferFrom(onBehalfOf, address(this), amount);
+      _mint(onBehalfOf, uint256(uint160(asset)), amount, "");
     }
   }
 
   /**
-   *
+   * @notice Removes liquidity from the teleporter.
+   * @param asset address
+   * @param amount to 
+   * @param onBehalfOf another user address. Pass ZERO address if not applicable.
    */
   function removeLiquidity(
     address asset,
@@ -128,9 +134,13 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     bytes memory signedMessage
   ) public {
     if (onBehalfOf == address(0)) {
-      _burn(msg.sender, uint256(asset), amount);
+      _burn(msg.sender, uint256(uint160(asset)), amount);
+      IERC20(asset).transfer(msg.sender, amount);
     } else {
-      // Check message
+      //TODO Check message
+      signedMessage;
+      _burn(onBehalfOf, uint256(uint160(asset)), amount);
+      IERC20(asset).transfer(onBehalfOf, amount);
     }
   }
 

@@ -26,6 +26,10 @@ contract Compound is ILoanProvider, Ownable {
     teleporter = _teleporter;
   }
 
+  function addCTokenMapping(address _token, address _ctoken) external onlyOwner {
+    cTokenMap[_token] = _ctoken;
+  }
+
   /**
    * @dev Deposit native/ERC20_Token.
    * @param _asset token address to deposit.

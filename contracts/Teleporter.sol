@@ -53,16 +53,15 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     IERC20(debtAsset).transfer(loanProviderA, debtAmount); 
     loanProvider.paybackOnBehalf(debtAsset, debtAmount, msg.sender);
 
-    // 3.- Transfer collateral of user
+    // 3.- Transfer and withdraw collateral from user to Teleporter control
+    loanProvider.withdrawOnBehalf(collateralAsset, collateralAmount, msg.sender);
+  
+    // 4.- construct xcall to bridge collateral
 
-    // 4.- keep control of user collateral
-    //TODO withdraw on behalf of user
-
-    // 5.- construct xcall to bridge collateral
-
-    //Approve tokens for bridging
-    IERC20 token = IERC20(collateralAsset);
-    token.approve(address(connext), collateralAmount);
+    if (collateralAsset != NATIVE_ASSET) {
+      //Approve tokens for bridging
+      IERC20(collateralAsset).approve(address(connext), collateralAmount); 
+    }
 
     bytes4 selector = bytes4(keccak256("completeLoanTransfer(address,address,uint256,address,uint256)"));
 

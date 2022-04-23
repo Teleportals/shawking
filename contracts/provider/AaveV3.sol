@@ -44,6 +44,14 @@ contract AaveV3 is ILoanProvider, Ownable {
     dataProvider = IAaveProtocolDataProvider(_dataProvider);
   }
 
+  function addATokenMapping(address _token, address _atoken) external onlyOwner {
+    aTokenMap[_token] = _atoken;
+  }
+
+  function addDebtTokenMapping(address _token, address _debtToken) external onlyOwner {
+    debtTokenMap[_token] = _debtToken;
+  }
+
   /**
    * @dev Deposit ETH/ERC20_Token.
    * @param _asset token address to deposit.

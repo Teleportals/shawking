@@ -26,7 +26,7 @@ contract AaveV3 is ILoanProvider, Ownable {
     address _dataProvider
   ) {
     teleporter = _teleporter;
-    aavePool = IPool(aavePool);
+    aavePool = IPool(_aavePool);
     dataProvider = IAaveProtocolDataProvider(_dataProvider);
   }
 

@@ -56,13 +56,7 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     // 3.- Transfer and withdraw collateral from user to Teleporter control
     loanProvider.withdrawOnBehalf(collateralAsset, collateralAmount, msg.sender);
   
-    // 4.- construct xcall to bridge collateral
-
-    if (collateralAsset != NATIVE_ASSET) {
-      //Approve tokens for bridging
-      IERC20(collateralAsset).approve(address(connext), collateralAmount); 
-    }
-
+    // 4.- Construct arguments for bridging (Connext)
     bytes4 selector = bytes4(keccak256("completeLoanTransfer(address,address,uint256,address,uint256)"));
 
     bytes memory callData = abi.encodeWithSelector(
@@ -89,6 +83,10 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     });
 
     // 6.- make xcall
+    if (collateralAsset != NATIVE_ASSET) {
+    //Approve tokens for bridging
+      IERC20(collateralAsset).approve(address(connext), collateralAmount); 
+    }
 
     connext.xcall(xcallArgs);
   }

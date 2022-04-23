@@ -8,12 +8,16 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 
 import "./interfaces/IConnext.sol";
+import "./AaveV3.sol";
 
-contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
+contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply, AaveV3 {
   IConnext public immutable connext;
 
-  constructor(address _connext) ERC1155("") {
+  address public aavePool;
+
+  constructor(address _connext, address _aavePool) ERC1155("") {
     connext = IConnext(_connext);
+    aavePool = _aavePool;
   }
 
   function initiateLoanTranser(
@@ -30,8 +34,8 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     // 2.- payback debt on-behalf of user
     // 3.- withdraw collateral on-behalf of user
     // 4.- keep control of user collateral
+
     // 5.- construct xcall to bridge collateral
-    // 6.- make xcall
 
     //Approve tokens for bridging
     IERC20 token = IERC20(collateralAsset);
@@ -62,6 +66,8 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
       amount: collateralAmount
     });
 
+    // 6.- make xcall
+
     connext.xcall(xcallArgs);
   }
 
@@ -75,6 +81,10 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     // 1.- check destination and target
     // 2.- open debt position
     // 3.- make position claimable
+  }
+
+  function setAavePool(address _aavePool) public onlyOwner {
+    aavePool = _aavePool;
   }
 
   function setURI(string memory newuri) public onlyOwner {

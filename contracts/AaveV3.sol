@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IAaveProtocolDataProvider.sol";
 import "./interfaces/IPool.sol";
 
-contract ProviderAaveV3MATIC {
+contract AaveV3 {
   /**
    * @dev Deposit ETH/ERC20_Token.
    * @param _asset token address to deposit.

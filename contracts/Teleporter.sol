@@ -36,7 +36,6 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     ILoanProvider(loanProviderA).paybackOnBehalf(debtAsset, debtAmount, msg.sender);
 
     // 3.- Transfer collateral of user
-    IERC20()
 
     // 4.- keep control of user collateral
     //TODO withdraw on behalf of user
@@ -89,10 +88,6 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     // 3.- make position claimable
   }
 
-  function setAavePool(address _aavePool) public onlyOwner {
-    aavePool = _aavePool;
-  }
-
   function setURI(string memory newuri) public onlyOwner {
     _setURI(newuri);
   }
@@ -107,7 +102,9 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
 
   /**
    * @notice Adds liquidity to the teleporter.
-   * @param asset
+   * @param asset address
+   * @param amount value
+   * @param onBehalfOf address
    */
   function addLiquidity(
     address asset,

@@ -32,8 +32,10 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply, AaveV3 {
   ) external {
     // 1.- check and validate inputs
     // 2.- payback debt on-behalf of user
+    payback(debtAsset, debtAmount, msg.sender, aavePool);
     // 3.- withdraw collateral on-behalf of user
     // 4.- keep control of user collateral
+    //TODO withdraw on behalf of user
 
     // 5.- construct xcall to bridge collateral
 

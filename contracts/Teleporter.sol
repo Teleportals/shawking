@@ -120,8 +120,9 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
       IExecutor(msg.sender).originSender() == teleporters[originDomain],
       "Expected origin domain contract"
     );
+
     // 2.- open debt position
-    // 2.1 - deposti
+    // 2.1 - deposit
     ILoanProvider loanProvider = ILoanProvider(loanProviderB);
     IERC20(collateralAsset).transfer(loanProviderB, collateralAmount); 
     loanProvider.depositOnBehalf(collateralAsset, collateralAmount, user);

@@ -6,8 +6,10 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
+
 import "./interfaces/IConnext.sol";
 import "./interfaces/ILoanProvider.sol";
+import "./interfaces/IExecutor.sol";
 
 contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
 
@@ -60,15 +62,17 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     loanProvider.withdrawOnBehalf(collateralAsset, collateralAmount, msg.sender);
   
     // 4.- Construct arguments for bridging (Connext)
-    bytes4 selector = bytes4(keccak256("completeLoanTransfer(address,address,uint256,address,uint256)"));
+    bytes4 selector = bytes4(keccak256("completeLoanTransfer(uint32,address,address,uint256,address,uint256,address)"));
 
     bytes memory callData = abi.encodeWithSelector(
     selector,
+    originDomain,
     loanProviderB,
     collateralAsset,
     collateralAmount,
     debtAsset,
-    debtAmount
+    debtAmount,
+    msg.sender
     );
 
     IConnext.CallParams memory callParams = IConnext.CallParams({
@@ -95,14 +99,34 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
   }
 
   function completeLoanTranser(
+    uint32 originDomain,
     address loanProviderB,
     address collateralAsset,
     uint256 collateralAmount,
     address debtAsset,
-    uint256 debtAmount
+    uint256 debtAmount,
+    address user
   ) external {
     // 1.- check destination and target
+    require(
+      // origin domain of the source contract
+      IExecutor(msg.sender).origin() == originDomain,
+      "Expected origin domain"
+    );
+    require(
+      // msg.sender of xcall from the origin domain
+      IExecutor(msg.sender).originSender() == teleporters[originDomain],
+      "Expected origin domain contract"
+    );
     // 2.- open debt position
+    // 2.1 - deposti
+    ILoanProvider loanProvider = ILoanProvider(loanProviderB);
+    IERC20(collateralAsset).transfer(loanProviderB, collateralAmount); 
+    loanProvider.depositOnBehalf(collateralAsset, collateralAmount, user);
+
+    // 2.2 - borrow
+    loanProvider.borrowOnBehalf(debtAsset, debtAmount, user);
+
     // 3.- make position claimable
   }
 
@@ -115,7 +139,7 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
   }
 
   function setTeleporter(uint32 _domain, address _teleporter) external onlyOwner {
-    teleporters[_domain] = _teleporter
+    teleporters[_domain] = _teleporter;
   }
 
   function setURI(string memory newuri) external onlyOwner {

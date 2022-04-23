@@ -12,6 +12,10 @@ import "../interfaces/IPool.sol";
 contract ProviderAaveV3MATIC is IProvider, Ownable {
   IPool public aave;
 
+  constructor(address _pool) {
+    aave = IPool(_pool);
+  }
+
   function setPool(address _pool) external onlyOwner {
     aave = IPool(_pool);
   }

@@ -8,8 +8,8 @@ const providers = {
     },
   },
   kovan: {
-    compound: {}
-  }
+    compound: {},
+  },
 };
 
 async function main() {
@@ -25,9 +25,7 @@ async function main() {
   // console.log("AaveV3 deployed to:", aavev3.address);
 
   const Compound = await hre.ethers.getContractFactory("Compound");
-  const compound = await Compound.deploy(
-    providers.rinkeby.aavev3.pool,
-  );
+  const compound = await Compound.deploy(providers.rinkeby.aavev3.pool);
 
   await compound.deployed();
 

@@ -16,6 +16,9 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
 
   IConnext public immutable connext;
 
+  // domain (chain) => teleporter address
+  mapping(uint32 => address) teleporters;
+
   // domain(chain) => loan provider address => bool 
   mapping(uint32 => mapping(address => bool)) public isLoanProvider;
 
@@ -109,6 +112,10 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
 
   function setSupportedPair(address _collateralAddress, address _debtAddress) external onlyOwner {
     isSupportedPair[_collateralAddress] = _debtAddress;
+  }
+
+  function setTeleporter(uint32 _domain, address _teleporter) external onlyOwner {
+    teleporters[_domain] = _teleporter
   }
 
   function setURI(string memory newuri) external onlyOwner {

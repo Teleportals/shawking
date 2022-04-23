@@ -16,6 +16,9 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
 
   IConnext public immutable connext;
 
+  // domain(chain) => teleporter address
+  mapping(uint32 => address) public teleporters;
+
   // domain(chain) => loan provider address => bool 
   mapping(uint32 => mapping(address => bool)) public isLoanProvider;
 
@@ -42,6 +45,7 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
       isLoanProvider[originDomain][loanProviderA] && isLoanProvider[destinationDomain][loanProviderB], 
       "Wrong Address!"
     );
+    require(teleporters[destinationDomain] != address(0), "No teleporter!");
     // 1.2 Check there is enough liquidity to initiate loan transfer.
     require(IERC20(debtAsset).balanceOf(address(this)) > debtAmount,"No liquidity!");
     // 1.3 Check if loan transfer pair is supported
@@ -70,7 +74,7 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
 
     IConnext.CallParams memory callParams = IConnext.CallParams({
       //TODO "to" for destiantion contract
-      to: address(0),
+      to: teleporters[destinationDomain],
       callData: callData,
       originDomain: originDomain,
       destinationDomain: destinationDomain
@@ -85,10 +89,11 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     // 6.- Make external call to execute bridge operation (Connext)
     if (collateralAsset != NATIVE_ASSET) {
     //Approve tokens for bridging
-      IERC20(collateralAsset).approve(address(connext), collateralAmount); 
+      IERC20(collateralAsset).approve(address(connext), collateralAmount);
+      connext.xcall(xcallArgs);
+    } else {
+      connext.xcall{value: collateralAmount}(xcallArgs);
     }
-
-    connext.xcall(xcallArgs);
   }
 
   function completeLoanTranser(
@@ -98,8 +103,10 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     address debtAsset,
     uint256 debtAmount
   ) external {
-    // 1.- check destination and target
-    // 2.- open debt position
+    // 1.- Checks and input validation
+    // 1.1 Check destination domain
+
+    // 2.- Open debt position
     // 3.- make position claimable
   }
 
@@ -166,6 +173,8 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
       IERC20(asset).transfer(onBehalfOf, amount);
     }
   }
+
+  /// Hooks
 
   function _beforeTokenTransfer(
     address operator,

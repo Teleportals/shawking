@@ -11,9 +11,16 @@ import "./interfaces/ILoanProvider.sol";
 
 contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
 
+  address public constant NATIVE_ASSET =
+    0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+
   IConnext public immutable connext;
 
-  mapping(address => address) loanproviders;
+  // domain(chain) => loan provider address => bool 
+  mapping(uint32 => mapping(address => bool)) public isLoanProvider;
+
+  // collateral address => debt address
+  mapping(address => address ) public isSupportedPair;
 
   constructor(address _connext) ERC1155("") {
     connext = IConnext(_connext);
@@ -29,11 +36,22 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     address debtAsset,
     uint256 debtAmount
   ) external {
-    // 1.- check and validate inputs
-
-    // 2.- payback debt on-behalf of user
-    IERC20(debtAsset).approve(loanProviderA, debtAmount);
-    ILoanProvider(loanProviderA).paybackOnBehalf(debtAsset, debtAmount, msg.sender);
+    // 1.- Checks and input validation
+    // 1.1 Check that loan provider addresses and domains (chains) are valid.
+    require(
+      isLoanProvider[originDomain][loanProviderA] && isLoanProvider[destinationDomain][loanProviderB], 
+      "Wrong Address!"
+    );
+    // 1.2 Check there is enough liquidity to initiate loan transfer.
+    require(IERC20(debtAsset).balanceOf(address(this)) > debtAmount,"No liquidity!");
+    // 1.3 Check if loan transfer pair is supported
+    require(isSupportedPair[collateralAsset] == debtAsset, "No pair support!");
+    
+    // 2.- Pay back debt on-behalf of user
+    //TODO add support for NATIVE_ASSET as 'debtAsset'
+    ILoanProvider loanProvider = ILoanProvider(loanProviderA);
+    IERC20(debtAsset).transfer(loanProviderA, debtAmount); 
+    loanProvider.paybackOnBehalf(debtAsset, debtAmount, msg.sender);
 
     // 3.- Transfer collateral of user
 
@@ -88,7 +106,15 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     // 3.- make position claimable
   }
 
-  function setURI(string memory newuri) public onlyOwner {
+  function setLoanProvider(uint32 _domain, address _loanProvider, bool status) external onlyOwner {
+    isLoanProvider[_domain][_loanProvider] = status;
+  }
+
+  function setSupportedPair(address _collateralAddress, address _debtAddress) external onlyOwner {
+    isSupportedPair[_collateralAddress] = _debtAddress;
+  }
+
+  function setURI(string memory newuri) external onlyOwner {
     _setURI(newuri);
   }
 

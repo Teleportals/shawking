@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -9,6 +8,9 @@ import "../interfaces/IPool.sol";
 import "../interfaces/IAaveProtocolDataProvider.sol";
 
 contract AaveV3 is ILoanProvider, Ownable {
+  address public constant NATIVE_ASSET =
+    0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+  
   IPool public aavePool;
   IAaveProtocolDataProvider public dataProvider;
 
@@ -26,7 +28,7 @@ contract AaveV3 is ILoanProvider, Ownable {
     address _dataProvider
   ) {
     teleporter = _teleporter;
-    aavePool = IPool(aavePool);
+    aavePool = IPool(_aavePool);
     dataProvider = IAaveProtocolDataProvider(_dataProvider);
   }
 
@@ -97,6 +99,7 @@ contract AaveV3 is ILoanProvider, Ownable {
     uint256 _amount,
     address _onBehalfOf
   ) public override {
+    IERC20(_asset).approve(address(aavePool), _amount);
     aavePool.repay(_asset, _amount, 2, _onBehalfOf);
   }
 

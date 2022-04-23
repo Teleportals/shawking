@@ -25,7 +25,7 @@ async function main() {
   // console.log("AaveV3 deployed to:", aavev3.address);
 
   const Compound = await hre.ethers.getContractFactory("Compound");
-  const compound = await compound.deploy(
+  const compound = await Compound.deploy(
     providers.rinkeby.aavev3.pool,
   );
 

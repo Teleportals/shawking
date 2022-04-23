@@ -82,7 +82,7 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
       amount: collateralAmount
     });
 
-    // 6.- make xcall
+    // 6.- Make external call to execute bridge operation (Connext)
     if (collateralAsset != NATIVE_ASSET) {
     //Approve tokens for bridging
       IERC20(collateralAsset).approve(address(connext), collateralAmount); 

@@ -81,8 +81,7 @@ contract AaveV3 is ILoanProvider, Ownable {
   function borrowOnBehalf(
     address _asset,
     uint256 _amount,
-    address _onBehalfOf,
-    address _pool
+    address _onBehalfOf
   ) public override {
     aavePool.borrow(_asset, _amount, 2, 0, _onBehalfOf);
   }

@@ -5,27 +5,18 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "../interfaces/IProvider.sol";
-import "../interfaces/IAaveProtocolDataProvider.sol";
-import "../interfaces/IPool.sol";
+import "./interfaces/IAaveProtocolDataProvider.sol";
+import "./interfaces/IPool.sol";
 
-contract ProviderAaveV3MATIC is IProvider, Ownable {
-  IPool public aave;
-
-  constructor(address _pool) {
-    aave = IPool(_pool);
-  }
-
-  function setPool(address _pool) external onlyOwner {
-    aave = IPool(_pool);
-  }
-
+contract ProviderAaveV3MATIC {
   /**
    * @dev Deposit ETH/ERC20_Token.
    * @param _asset token address to deposit.
    * @param _amount token amount to deposit.
    */
-  function deposit(address _asset, uint256 _amount) external payable override {
+  function deposit(address _asset, uint256 _amount, address _pool) external payable {
+    IPool aave = IPool(_pool);
+
     IERC20(_asset).approve(address(aave), _amount);
 
     aave.supply(_asset, _amount, address(this), 0);
@@ -38,7 +29,9 @@ contract ProviderAaveV3MATIC is IProvider, Ownable {
    * @param _asset token address to borrow.
    * @param _amount token amount to borrow.
    */
-  function borrow(address _asset, uint256 _amount) external payable override {
+  function borrow(address _asset, uint256 _amount, address _pool) external payable {
+    IPool aave = IPool(_pool);
+
     aave.borrow(_asset, _amount, 2, 0, address(this));
   }
 
@@ -47,7 +40,9 @@ contract ProviderAaveV3MATIC is IProvider, Ownable {
    * @param _asset token address to withdraw.
    * @param _amount token amount to withdraw.
    */
-  function withdraw(address _asset, uint256 _amount) external payable override {
+  function withdraw(address _asset, uint256 _amount, address _pool) external payable {
+    IPool aave = IPool(_pool);
+
     aave.withdraw(_asset, _amount, address(this));
   }
 
@@ -57,7 +52,9 @@ contract ProviderAaveV3MATIC is IProvider, Ownable {
    * @param _amount token amount to payback.
    */
 
-  function payback(address _asset, uint256 _amount) external payable override {
+  function payback(address _asset, uint256 _amount, address _pool) external payable {
+    IPool aave = IPool(_pool);
+
     IERC20(_asset).approve(address(aave), _amount);
 
     aave.repay(_asset, _amount, 2, address(this));

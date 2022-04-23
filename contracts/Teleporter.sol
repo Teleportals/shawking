@@ -6,18 +6,17 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
-
 import "./interfaces/IConnext.sol";
-import "./AaveV3.sol";
+import "./interfaces/ILoanProvider.sol";
 
-contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply, AaveV3 {
+contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
+
   IConnext public immutable connext;
 
-  address public aavePool;
+  mapping(address => address) loanproviders;
 
-  constructor(address _connext, address _aavePool) ERC1155("") {
+  constructor(address _connext) ERC1155("") {
     connext = IConnext(_connext);
-    aavePool = _aavePool;
   }
 
   function initiateLoanTranser(
@@ -31,9 +30,14 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply, AaveV3 {
     uint256 debtAmount
   ) external {
     // 1.- check and validate inputs
+
     // 2.- payback debt on-behalf of user
-    payback(debtAsset, debtAmount, msg.sender, aavePool);
-    // 3.- withdraw collateral on-behalf of user
+    IERC20(debtAsset).approve(loanProviderA, debtAmount);
+    ILoanProvider(loanProviderA).paybackOnBehalf(debtAsset, debtAmount, msg.sender);
+
+    // 3.- Transfer collateral of user
+    IERC20()
+
     // 4.- keep control of user collateral
     //TODO withdraw on behalf of user
 

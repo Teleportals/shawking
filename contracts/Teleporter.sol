@@ -19,6 +19,8 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
 
   IConnext public immutable connext;
 
+  address public testToken;
+
   // domain(chain) => teleporter address
   mapping(uint32 => address) public teleporters;
 
@@ -53,6 +55,8 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     require(IERC20(debtAsset).balanceOf(address(this)) > debtAmount,"No liquidity!");
     // 1.3 Check if loan transfer pair is supported
     require(isSupportedPair[collateralAsset] == debtAsset, "No pair support!");
+    // 1.4 Check if test token address is set
+    require(testToken != address(0), "Test token not set");
     
     // 2.- Pay back debt on-behalf of user
     //TODO add support for NATIVE_ASSET as 'debtAsset'
@@ -87,7 +91,7 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
 
     IConnext.XCallArgs memory xcallArgs = IConnext.XCallArgs({
       params: callParams,
-      transactingAssetId: collateralAsset,
+      transactingAssetId: testToken,
       amount: 0
     });
 
@@ -132,6 +136,10 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     loanProvider.borrowOnBehalf(debtAsset, debtAmount, user);
 
     // 3.- make position claimable
+  }
+
+  function setTestToken(address _testToken) external onlyOwner {
+    testToken = _testToken;
   }
 
   function setLoanProvider(uint32 _domain, address _loanProvider, bool status) external onlyOwner {

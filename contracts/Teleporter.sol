@@ -30,8 +30,11 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
   // collateral address => debt address
   mapping(address => address ) public isSupportedPair;
 
+  bool public xCallArrived;
+
   constructor(address _connext) ERC1155("") {
     connext = IConnext(_connext);
+    xCallArrived = false;
   }
 
   function initiateLoanTranser(
@@ -39,9 +42,11 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     uint32 destinationDomain,
     address loanProviderA,
     address loanProviderB,
-    address collateralAsset,
+    address collateralAssetA,
+    address collateralAssetB,
     uint256 collateralAmount,
-    address debtAsset,
+    address debtAssetA,
+    address debtAssetB,
     uint256 debtAmount
   ) external {
     // 1.- Checks and input validation
@@ -52,31 +57,29 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     );
     require(teleporters[destinationDomain] != address(0), "No teleporter!");
     // 1.2 Check there is enough liquidity to initiate loan transfer.
-    require(IERC20(debtAsset).balanceOf(address(this)) > debtAmount,"No liquidity!");
+    require(IERC20(debtAssetA).balanceOf(address(this)) > debtAmount,"No liquidity!");
     // 1.3 Check if loan transfer pair is supported
-    require(isSupportedPair[collateralAsset] == debtAsset, "No pair support!");
+    require(isSupportedPair[collateralAssetA] == debtAssetA, "No pair support!");
     // 1.4 Check if test token address is set
     require(testToken != address(0), "Test token not set");
     
     // 2.- Pay back debt on-behalf of user
     //TODO add support for NATIVE_ASSET as 'debtAsset'
     ILoanProvider loanProvider = ILoanProvider(loanProviderA);
-    IERC20(debtAsset).transfer(loanProviderA, debtAmount); 
-    loanProvider.paybackOnBehalf(debtAsset, debtAmount, msg.sender);
+    IERC20(debtAssetA).transfer(loanProviderA, debtAmount); 
+    loanProvider.paybackOnBehalf(debtAssetA, debtAmount, msg.sender);
 
     // 3.- Transfer and withdraw collateral from user to Teleporter control
-    loanProvider.withdrawOnBehalf(collateralAsset, collateralAmount, msg.sender);
+    loanProvider.withdrawOnBehalf(collateralAssetA, collateralAmount, msg.sender);
   
     // 4.- Construct arguments for bridging (Connext)
-    bytes4 selector = bytes4(keccak256("completeLoanTransfer(uint32,address,address,uint256,address,uint256,address)"));
-
     bytes memory callData = abi.encodeWithSelector(
-    selector,
+    bytes4(keccak256("completeLoanTransfer(uint32,address,address,uint256,address,uint256,address)")),
     originDomain,
     loanProviderB,
-    collateralAsset,
+    collateralAssetB,
     collateralAmount,
-    debtAsset,
+    debtAssetB,
     debtAmount,
     msg.sender
     );
@@ -96,9 +99,9 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     });
 
     // 6.- Make external call to execute bridge operation (Connext)
-    if (collateralAsset != NATIVE_ASSET) {
+    if (collateralAssetA != NATIVE_ASSET) {
     //Approve tokens for bridging
-      IERC20(collateralAsset).approve(address(connext), collateralAmount);
+      IERC20(collateralAssetA).approve(address(connext), collateralAmount);
       connext.xcall(xcallArgs);
     } else {
       connext.xcall{value: collateralAmount}(xcallArgs);
@@ -114,6 +117,7 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     uint256 debtAmount,
     address user
   ) external {
+    xCallArrived = true;
     // 1.- check destination and target
     require(
       // origin domain of the source contract

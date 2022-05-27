@@ -18,7 +18,7 @@ const compoundMappings = {
 async function main() {
   const Teleporter = await hre.ethers.getContractFactory("Teleporter");
   const teleporter = await Teleporter.deploy(
-    "0xb10aCCbea65532bB2C45Adb34Da5b89A2A0f67b9"
+    "0x3366A61A701FA84A86448225471Ec53c5c4ad49f"
   );
 
   await teleporter.deployed();

@@ -21,7 +21,7 @@ const aaveV3Mappings = {
 const providers = {
   rinkeby: {
     aavev3: {
-      pool: "0x87530ED4bd0ee0e79661D65f8Dd37538F693afD5",
+      pool: "0xE039BdF1d874d27338e09B55CB09879Dedca52D8",
       dataProvider: "0xBAB2E7afF5acea53a43aEeBa2BA6298D8056DcE5",
     },
   },
@@ -30,7 +30,7 @@ const providers = {
 async function main() {
   const Teleporter = await hre.ethers.getContractFactory("Teleporter");
   const teleporter = await Teleporter.deploy(
-    "0x3e99898Da8A01Ed909976AF13e4Fa6094326cB10"
+    "0x2307Ed9f152FA9b3DcDfe2385d279D8C2A9DF2b0"
   );
 
   await teleporter.deployed();

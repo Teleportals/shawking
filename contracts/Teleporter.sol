@@ -85,17 +85,22 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     );
 
     IConnext.CallParams memory callParams = IConnext.CallParams({
-      //TODO "to" for destiantion contract
       to: teleporters[destinationDomain],
       callData: callData,
       originDomain: originDomain,
-      destinationDomain: destinationDomain
+      destinationDomain: destinationDomain,
+      recovery: teleporters[destinationDomain],
+      callback: address(0),
+      callbackFee: 0,
+      forceSlow: false,
+      receiveLocal: false
     });
 
     IConnext.XCallArgs memory xcallArgs = IConnext.XCallArgs({
       params: callParams,
       transactingAssetId: testToken,
-      amount: 0
+      amount: 0,
+      relayerFee: 0
     });
 
     // 6.- Make external call to execute bridge operation (Connext)
@@ -108,7 +113,7 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     }
   }
 
-  function completeLoanTranser(
+  function completeLoanTransfer(
     uint32 originDomain,
     address loanProviderB,
     address collateralAsset,
@@ -117,27 +122,34 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     uint256 debtAmount,
     address user
   ) external {
-    xCallArrived = true;
+    originDomain;
+    loanProviderB;
+    collateralAmount;
+    collateralAsset;
+    debtAsset;
+    debtAmount;
+    user;
+    xCallArrived = !xCallArrived;
     // 1.- check destination and target
-    require(
+    // require(
       // origin domain of the source contract
-      IExecutor(msg.sender).origin() == originDomain,
-      "Expected origin domain"
-    );
-    require(
+    //   IExecutor(msg.sender).origin() == originDomain,
+    //   "Expected origin domain"
+    // );
+    // require(
       // msg.sender of xcall from the origin domain
-      IExecutor(msg.sender).originSender() == teleporters[originDomain],
-      "Expected origin domain contract"
-    );
+    //   IExecutor(msg.sender).originSender() == teleporters[originDomain],
+    //   "Expected origin domain contract"
+    // );
 
     // 2.- open debt position
     // 2.1 - deposit
-    ILoanProvider loanProvider = ILoanProvider(loanProviderB);
-    IER20Mintable(collateralAsset).allocateTo(loanProviderB, collateralAmount);
-    loanProvider.depositOnBehalf(collateralAsset, collateralAmount, user);
+    // ILoanProvider loanProvider = ILoanProvider(loanProviderB);
+    // IER20Mintable(collateralAsset).allocateTo(loanProviderB, collateralAmount);
+    // loanProvider.depositOnBehalf(collateralAsset, collateralAmount, user);
 
     // 2.2 - borrow
-    loanProvider.borrowOnBehalf(debtAsset, debtAmount, user);
+    // loanProvider.borrowOnBehalf(debtAsset, debtAmount, user);
 
     // 3.- make position claimable
   }
@@ -225,5 +237,58 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     bytes memory data
   ) internal override(ERC1155, ERC1155Supply) whenNotPaused {
     super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
+  }
+
+  /**
+   * Cross-domain update of a value on a target contract.
+   @dev Initiates the Connext bridging flow with calldata to be used on the target contract.
+   */
+  function updateValue(
+    address to,
+    address asset,
+    uint32 originDomain,
+    uint32 destinationDomain,
+    uint256 newValue,
+    bool permissioned
+  ) external payable {
+
+    bytes4 selector;
+    bool forceSlow;
+
+    // Encode function of the target contract (from Target.sol)
+    if (permissioned) {
+      selector = bytes4(keccak256("updateValuePermissioned(uint256)"));
+      forceSlow = true;
+    } else {
+      selector = bytes4(keccak256("updateValueUnpermissioned(uint256)"));
+      forceSlow = false;
+    }
+    bytes memory callData = abi.encodeWithSelector(selector, newValue);
+
+    IConnext.CallParams memory callParams = IConnext.CallParams({
+      to: to,
+      callData: callData,
+      originDomain: originDomain,
+      destinationDomain: destinationDomain,
+      recovery: to,
+      callback: address(0),
+      callbackFee: 0,
+      forceSlow: forceSlow,
+      receiveLocal: false
+    });
+
+    IConnext.XCallArgs memory xcallArgs = IConnext.XCallArgs({
+      params: callParams,
+      transactingAssetId: asset,
+      amount: 0,
+      relayerFee: 0
+    });
+
+    connext.xcall(xcallArgs);
+  }
+
+  function updateValueUnpermissioned(uint256 newValue) external {
+    newValue;
+    xCallArrived = !xCallArrived;
   }
 }

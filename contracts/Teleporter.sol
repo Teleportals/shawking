@@ -56,26 +56,26 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     debtAssetA;
     // 1.- Checks and input validation
     // 1.1 Check that loan provider addresses and domains (chains) are valid.
-    // require(
-    //   isLoanProvider[originDomain][loanProviderA] && isLoanProvider[destinationDomain][loanProviderB], 
-    //   "Wrong Address!"
-    // );
-    // require(teleporters[destinationDomain] != address(0), "No teleporter!");
+    require(
+      isLoanProvider[originDomain][loanProviderA] && isLoanProvider[destinationDomain][loanProviderB], 
+      "Wrong Address!"
+    );
+    require(teleporters[destinationDomain] != address(0), "No teleporter!");
     // 1.2 Check there is enough liquidity to initiate loan transfer.
-    // require(IERC20(debtAssetA).balanceOf(address(this)) > debtAmount,"No liquidity!");
+    require(IERC20(debtAssetA).balanceOf(address(this)) > debtAmount,"No liquidity!");
     // 1.3 Check if loan transfer pair is supported
-    // require(isSupportedPair[collateralAssetA] == debtAssetA, "No pair support!");
+    require(isSupportedPair[collateralAssetA] == debtAssetA, "No pair support!");
     // 1.4 Check if test token address is set
-    // require(testToken != address(0), "Test token not set");
+    require(testToken != address(0), "Test token not set");
     
     // 2.- Pay back debt on-behalf of user
     //TODO add support for NATIVE_ASSET as 'debtAsset'
-    // ILoanProvider loanProvider = ILoanProvider(loanProviderA);
-    // IERC20(debtAssetA).transfer(loanProviderA, debtAmount); 
-    // loanProvider.paybackOnBehalf(debtAssetA, debtAmount, msg.sender);
+    ILoanProvider loanProvider = ILoanProvider(loanProviderA);
+    IERC20(debtAssetA).transfer(loanProviderA, debtAmount); 
+    loanProvider.paybackOnBehalf(debtAssetA, debtAmount, msg.sender);
 
     // 3.- Transfer and withdraw collateral from user to Teleporter control
-    // loanProvider.withdrawOnBehalf(collateralAssetA, collateralAmount, msg.sender);
+    loanProvider.withdrawOnBehalf(collateralAssetA, collateralAmount, msg.sender);
   
     // 4.- Construct arguments for bridging (Connext)
     bytes memory callData = abi.encodeWithSelector(
@@ -243,58 +243,5 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     bytes memory data
   ) internal override(ERC1155, ERC1155Supply) whenNotPaused {
     super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
-  }
-
-  /**
-   * Cross-domain update of a value on a target contract.
-   @dev Initiates the Connext bridging flow with calldata to be used on the target contract.
-   */
-  function updateValue(
-    address to,
-    address asset,
-    uint32 originDomain,
-    uint32 destinationDomain,
-    uint256 newValue,
-    bool permissioned
-  ) external payable {
-
-    bytes4 selector;
-    bool forceSlow;
-
-    // Encode function of the target contract (from Target.sol)
-    if (permissioned) {
-      selector = bytes4(keccak256("updateValuePermissioned(uint256)"));
-      forceSlow = true;
-    } else {
-      selector = bytes4(keccak256("updateValueUnpermissioned(uint256)"));
-      forceSlow = false;
-    }
-    bytes memory callData = abi.encodeWithSelector(selector, newValue);
-
-    IConnext.CallParams memory callParams = IConnext.CallParams({
-      to: to,
-      callData: callData,
-      originDomain: originDomain,
-      destinationDomain: destinationDomain,
-      recovery: to,
-      callback: address(0),
-      callbackFee: 0,
-      forceSlow: forceSlow,
-      receiveLocal: false
-    });
-
-    IConnext.XCallArgs memory xcallArgs = IConnext.XCallArgs({
-      params: callParams,
-      transactingAssetId: asset,
-      amount: 0,
-      relayerFee: 0
-    });
-
-    connext.xcall(xcallArgs);
-  }
-
-  function updateValueUnpermissioned(uint256 newValue) external {
-    newValue;
-    xCallArrived = !xCallArrived;
   }
 }

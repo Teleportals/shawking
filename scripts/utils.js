@@ -57,6 +57,27 @@ const compoundMappings = {
   },
 };
 
+const connextParams = {
+  rinkeby: {
+    testToken: "0x3FFc03F05D1869f493c7dbf913E636C6280e0ff9",
+    handler: "0x2307Ed9f152FA9b3DcDfe2385d279D8C2A9DF2b0",
+    chainId: 4,
+    domainId: 1111
+  },
+  goerli: {
+    testToken: "0x3FFc03F05D1869f493c7dbf913E636C6280e0ff9",
+    handler: "0xEC3A723DE47a644b901DC269829bf8718F175EBF",
+    chainId: 5,
+    domainId: 3331
+  },
+  kovan: {
+    testToken: "0x3FFc03F05D1869f493c7dbf913E636C6280e0ff9",
+    handler: "0x3366A61A701FA84A86448225471Ec53c5c4ad49f",
+    chainId: 42,
+    domainId: 2221
+  }
+}
+
 const testParams = {
   testAssets: {
     rinkeby: {
@@ -70,9 +91,10 @@ const testParams = {
       debt: aaveV2Mappings.USDC.address
     }
   },
-  testAmouns: {
-    collateralAmmount: hre.ethers.utils.parseUnits("5", 8), // assuming WBTC
-    debtAmount: hre.ethers.utils.parseUnits("10000", 6), // assuming USDC
+  testAmounts: {
+    collateralAmount: hre.ethers.utils.parseUnits("5", 8), // assuming WBTC
+    liquidityAmount: hre.ethers.utils.parseUnits("10000", 6), // assuming USDC
+    debtAmount: hre.ethers.utils.parseUnits("250", 6), // assuming USDC
   }
 }
 
@@ -114,5 +136,6 @@ module.exports = {
   aaveV3Mappings,
   aaveV2Mappings,
   compoundMappings,
+  connextParams,
   testParams
 }

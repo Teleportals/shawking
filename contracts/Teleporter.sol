@@ -56,7 +56,7 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     val = 0;
   }
 
-  function initiateLoanTranser(
+  function initiateLoanTransfer(
     uint32 originDomain,
     uint32 destinationDomain,
     address loanProviderA,

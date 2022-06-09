@@ -8,6 +8,7 @@ const CHAIN_NAME='rinkeby';
 const CONNEXT_RINKEBY_TEST_TOKEN = "0x3FFc03F05D1869f493c7dbf913E636C6280e0ff9";
 
 const main = async () => {
+  console.log(CHAIN_NAME);
   const deployedRinkebyData = await readDeployments("rinkeby");
   const deployedKovanData = await readDeployments("kovan");
 

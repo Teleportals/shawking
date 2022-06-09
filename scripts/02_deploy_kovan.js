@@ -1,9 +1,9 @@
 const hre = require("hardhat");
 const fs = require("fs");
-const {updateDeployments, aaveV2Mappings} = require("./utils");
+const {updateDeployments, aaveV2Mappings, connextParams} = require("./utils");
 
 const CHAIN_NAME='kovan';
-const CONNEXT_KOVAN_HANDLER = "0x3366A61A701FA84A86448225471Ec53c5c4ad49f";
+const CONNEXT_KOVAN_HANDLER = connextParams.kovan.handler;
 
 const providers = {
   kovan: {
@@ -15,6 +15,7 @@ const providers = {
 };
 
 const main = async() => {
+  console.log(CHAIN_NAME);
   const Teleporter = await hre.ethers.getContractFactory("Teleporter");
   const teleporter = await Teleporter.deploy(
     CONNEXT_KOVAN_HANDLER
@@ -54,7 +55,7 @@ const main = async() => {
 
   let newdeployData = {
     chain: CHAIN_NAME,
-    connextDomainId: 2221,
+    connextDomainId: connextParams.kovan.domainId,
     teleporter: {address: teleporter.address},
     loanProvider: {address: aavev2.address}
   };

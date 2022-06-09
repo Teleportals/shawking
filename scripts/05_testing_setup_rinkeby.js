@@ -6,15 +6,18 @@ const CHAIN_NAME = 'rinkeby';
 
 const { readDeployments, testParams } = require("./utils");
 
-const COLLATERAL_ASSET_USED = testParams.testAssets.rinkeby.collateral;
+const COLLATERAL_ASSET = testParams.testAssets.rinkeby.collateral;
+const COLLATERAL_AMOUNT = testParams.testAmounts.collateralAmount;
 const COLLATERAL_RECEIPT_TOKEN = testParams.testAssets.rinkeby.collateralReceiptToken;
-const DEBT_ASSET_USED = testParams.testAssets.rinkeby.debt;
+const DEBT_ASSET = testParams.testAssets.rinkeby.debt;
+const DEBT_AMOUNT = testParams.testAmounts.debtAmount;
+const LIQUIDITY_AMOUNT = testParams.testAmounts.liquidityAmount;
 
 const ADDRESS_ZERO = hre.ethers.constants.AddressZero;
 
 const main = async () => {
-  const deployedRinkebyData = await readDeployments(CHAIN_NAME);
-  const local = deployedRinkebyData;
+  console.log(CHAIN_NAME);
+  const local = await readDeployments(CHAIN_NAME);
 
   if (!process.env.TEST_USER_PKEY) {
     throw "Please set TEST_USER_PKEY in ./root/.env"
@@ -24,35 +27,34 @@ const main = async () => {
   const teleporter = await hre.ethers.getContractAt("Teleporter", local.teleporter.address);
   const aaveV3provider = await hre.ethers.getContractAt("AaveV3", local.loanProvider.address);
   const realAaveV3 = await hre.ethers.getContractAt("IAaveV3Pool", await aaveV3provider.aavePool());
-  const debtToken = await hre.ethers.getContractAt("IERC20Mintable", DEBT_ASSET_USED);
-  const collatToken = await hre.ethers.getContractAt("IERC20Mintable", COLLATERAL_ASSET_USED);
+  const debtToken = await hre.ethers.getContractAt("IERC20Mintable", DEBT_ASSET);
+  const collatToken = await hre.ethers.getContractAt("IERC20Mintable", COLLATERAL_ASSET);
 
   // Support collateral-debt pair asset on teleporter
   console.log(`...setting collateral-debt pair on ${CHAIN_NAME} teleporter`);
-  let tx = await teleporter.setSupportedPair(COLLATERAL_ASSET_USED, DEBT_ASSET_USED);
+  let tx = await teleporter.setSupportedPair(COLLATERAL_ASSET, DEBT_ASSET);
   tx.wait();
   console.log(`...collateral-debt pair set complete!`);
 
   // Add liquidity to the sending teleporter
   console.log(`...adding liquidity to the sending ${CHAIN_NAME} teleporter`);
-  tx = await debtToken.mint(sampleAmounts.debtAmount);
+  tx = await debtToken.mint(LIQUIDITY_AMOUNT);
   await tx.wait();
-  tx = await debtToken.approve(teleporter.address, sampleAmounts.debtAmount);
+  tx = await debtToken.approve(teleporter.address, LIQUIDITY_AMOUNT);
   await tx.wait();
-  tx = await teleporter.addLiquidity(debtToken.address, sampleAmounts.debtAmount, ADDRESS_ZERO);
+  tx = await teleporter.addLiquidity(debtToken.address, LIQUIDITY_AMOUNT, ADDRESS_ZERO);
   await tx.wait();
-  console.log("..adding liquidity complete!");
+  console.log("...adding liquidity complete!");
 
   // Open debt position for test user
   console.log(`...creating debt position for test user!`);
-  tx = await collatToken.connect(testUser).mint(sampleAmounts.collateralAmmount);
+  tx = await collatToken.connect(testUser).mint(COLLATERAL_AMOUNT);
   await tx.wait();
-  tx = await collatToken.connect(testUser).approve(realAaveV3.address, sampleAmounts.collateralAmmount);
+  tx = await collatToken.connect(testUser).approve(realAaveV3.address, COLLATERAL_AMOUNT);
   await tx.wait();
-  tx = await realAaveV3.connect(testUser).supply(collatToken.address, sampleAmounts.collateralAmmount, testUser.address, 0);
+  tx = await realAaveV3.connect(testUser).supply(collatToken.address, COLLATERAL_AMOUNT, testUser.address, 0);
   await tx.wait();
-  const smallerAmount = sampleAmounts.debtAmount.div(hre.ethers.BigNumber.from("10"));
-  tx = await realAaveV3.connect(testUser).borrow(debtToken.address, smallerAmount, 2, 0, testUser.address);
+  tx = await realAaveV3.connect(testUser).borrow(debtToken.address, DEBT_AMOUNT, 2, 0, testUser.address);
   await tx.wait();
   console.log(`...test user debt position set complete!`);
 

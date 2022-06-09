@@ -1,7 +1,7 @@
 const hre = require("hardhat");
 const fs = require("fs");
 
-const {updateDeployments, checkChain, aaveV3Mappings} = require("./utils");
+const {updateDeployments, aaveV3Mappings} = require("./utils");
 
 const CHAIN_NAME='rinkeby';
 const CONNEXT_RINKEBY_HANDLER = "0x2307Ed9f152FA9b3DcDfe2385d279D8C2A9DF2b0";
@@ -16,7 +16,6 @@ const providers = {
 };
 
 const main = async() => {
-  await checkChain(CHAIN_NAME);
   const Teleporter = await hre.ethers.getContractFactory("Teleporter");
   const teleporter = await Teleporter.deploy(
     CONNEXT_RINKEBY_HANDLER
@@ -44,14 +43,12 @@ const main = async() => {
   }
   console.log("AaveV3 asset mappings ready!");
 
-  let newdeployData = [
-    {
-      chain: CHAIN_NAME,
-      connextDomainId: 1111,
-      teleporter: {address: teleporter.address},
-      loanProvider: {address: aavev3.address}
-    }
-  ];
+  let newdeployData = {
+    chain: CHAIN_NAME,
+    connextDomainId: 1111,
+    teleporter: {address: teleporter.address},
+    loanProvider: {address: aavev3.address}
+  }
 
   await updateDeployments(CHAIN_NAME, newdeployData);
 }

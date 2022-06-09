@@ -57,9 +57,23 @@ const compoundMappings = {
   },
 };
 
-const sampleAmounts = {
-  collateralAmmount: hre.ethers.utils.parseUnits("5", 8), // assuming WBTC
-  debtAmount: hre.ethers.utils.parseUnits("10000", 6), // assuming USDC
+const testParams = {
+  testAssets: {
+    rinkeby: {
+      collateral: aaveV3Mappings.WBTC.address,
+      collateralReceiptToken: aaveV3Mappings.WBTC.aToken,
+      debt: aaveV3Mappings.USDC.address
+    },
+    kovan : {
+      collateral: aaveV2Mappings.WBTC.address,
+      collateralReceiptToken: aaveV2Mappings.WBTC.aToken,
+      debt: aaveV2Mappings.USDC.address
+    }
+  },
+  testAmouns: {
+    collateralAmmount: hre.ethers.utils.parseUnits("5", 8), // assuming WBTC
+    debtAmount: hre.ethers.utils.parseUnits("10000", 6), // assuming USDC
+  }
 }
 
 const updateDeployments = async (chain, newDeployData) => {
@@ -68,10 +82,10 @@ const updateDeployments = async (chain, newDeployData) => {
     deployData = JSON.parse(fs.readFileSync(deploymentsPath).toString());
     let chainData = deployData.find(e => e.chain == chain);
     const index = deployData.findIndex(e => e == chainData);
-    if (!index) {
-      deployData[index] = newDeployData;
-    } else {
+    if (index == -1) {
       deployData.push(newDeployData);
+    } else {
+      deployData[index] = newDeployData;
     }
   } else {
     deployData.push(newDeployData);
@@ -83,10 +97,8 @@ const readDeployments = async (chain) => {
   let deployData;
   if (fs.existsSync(deploymentsPath)) {
     deployData = JSON.parse(fs.readFileSync(deploymentsPath).toString());
-    console.log(chain, "deployData", deployData);
     let chainData = deployData.find(e => e.chain == chain);
-    if (!chainData) {
-      console.log("chainData", chainData);
+    if (chainData.chain == chain) {
       return chainData;
     } else {
       throw `No deployed data for chain ${chain} found!`;
@@ -96,28 +108,11 @@ const readDeployments = async (chain) => {
   }
 }
 
-const checkChain = async (chainNameCheck) => {
-  // let wallet = await hre.ethers.getSigner();
-  // let provider = wallet.provider;
-  // console.log(provider);
-  // let chainName;
-  // if(!provider.network.name) {
-  //   chainName = 'unknown';
-  // } else {
-  //   chainName = provider.network.name;
-  // }
-  // if (chainName != chainNameCheck || chainName != 'unknown') {
-  //   throw 'Chain name mismatch, check proper chain passed and you are running the correct chain script! "npx hardhat --network chainName run ./script/script_chainname.js"';
-  // }
-}
-
-
 module.exports = {
   updateDeployments,
   readDeployments,
-  checkChain,
   aaveV3Mappings,
   aaveV2Mappings,
   compoundMappings,
-  sampleAmounts
+  testParams
 }

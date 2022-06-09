@@ -3,25 +3,23 @@ const hre = require("hardhat");
 const fs = require("fs");
 
 const CHAIN_NAME = 'rinkeby';
-const CONNEXT_RINKEBY_TEST_TOKEN = "0x3FFc03F05D1869f493c7dbf913E636C6280e0ff9";
 
-const { readDeployments, checkChain, aaveV3Mappings, sampleAmounts } = require("./utils");
+const { readDeployments, testParams } = require("./utils");
 
-const COLLATERAL_ASSET_USED = aaveV3Mappings.WBTC.address;
-const DEBT_ASSET_USED = aaveV3Mappings.USDC.address;
+const COLLATERAL_ASSET_USED = testParams.testAssets.rinkeby.collateral;
+const COLLATERAL_RECEIPT_TOKEN = testParams.testAssets.rinkeby.collateralReceiptToken;
+const DEBT_ASSET_USED = testParams.testAssets.rinkeby.debt;
 
 const ADDRESS_ZERO = hre.ethers.constants.AddressZero;
 
 const main = async () => {
-  await checkChain(CHAIN_NAME);
-
   const deployedRinkebyData = await readDeployments(CHAIN_NAME);
   const local = deployedRinkebyData;
 
   if (!process.env.TEST_USER_PKEY) {
     throw "Please set TEST_USER_PKEY in ./root/.env"
   }
-  const testUser = new hre.ethers.Wallet(process.env.TEST_USER_PKEY);
+  const testUser = new hre.ethers.Wallet(process.env.TEST_USER_PKEY, hre.ethers.provider);
 
   const teleporter = await hre.ethers.getContractAt("Teleporter", local.teleporter.address);
   const aaveV3provider = await hre.ethers.getContractAt("AaveV3", local.loanProvider.address);
@@ -34,11 +32,6 @@ const main = async () => {
   let tx = await teleporter.setSupportedPair(COLLATERAL_ASSET_USED, DEBT_ASSET_USED);
   tx.wait();
   console.log(`...collateral-debt pair set complete!`);
-  console.log(`...setting connext ${CHAIN_NAME} test token ${CONNEXT_RINKEBY_TEST_TOKEN}`);
-  tx = await teleporter.setTestToken(CONNEXT_RINKEBY_TEST_TOKEN);
-  tx.wait();
-  console.log(`...test token set complete!`);
-
 
   // Add liquidity to the sending teleporter
   console.log(`...adding liquidity to the sending ${CHAIN_NAME} teleporter`);
@@ -46,7 +39,7 @@ const main = async () => {
   await tx.wait();
   tx = await debtToken.approve(teleporter.address, sampleAmounts.debtAmount);
   await tx.wait();
-  tx = await teleporter.addLiquidity(teleporter.address, sampleAmounts.debtAmount);
+  tx = await teleporter.addLiquidity(debtToken.address, sampleAmounts.debtAmount, ADDRESS_ZERO);
   await tx.wait();
   console.log("..adding liquidity complete!");
 
@@ -56,16 +49,16 @@ const main = async () => {
   await tx.wait();
   tx = await collatToken.connect(testUser).approve(realAaveV3.address, sampleAmounts.collateralAmmount);
   await tx.wait();
-  tx = await realAaveV3.connect(testUser).supply(collatToken.address, sampleAmounts.collateralAmmount, ADDRESS_ZERO, 0);
+  tx = await realAaveV3.connect(testUser).supply(collatToken.address, sampleAmounts.collateralAmmount, testUser.address, 0);
   await tx.wait();
   const smallerAmount = sampleAmounts.debtAmount.div(hre.ethers.BigNumber.from("10"));
-  tx = await realAaveV3.connect(testUser).borrow(debtToken.address, smallerAmount, ADDRESS_ZERO, 0);
+  tx = await realAaveV3.connect(testUser).borrow(debtToken.address, smallerAmount, 2, 0, testUser.address);
   await tx.wait();
   console.log(`...test user debt position set complete!`);
 
   // test user approves transfer of aToken asset
   console.log(`...waiting for test user to approves transfer of aToken asset`);
-  const aToken = await hre.ethers.getContractAt("IERC20", aaveV3Mappings.WBTC.aToken)
+  const aToken = await hre.ethers.getContractAt("IERC20", COLLATERAL_RECEIPT_TOKEN)
   tx = await aToken.connect(testUser).approve(aaveV3provider.address, await aToken.balanceOf(testUser.address));
   await tx.wait();
   console.log(`...test user to approve transfer of aToken asset complete!`);

@@ -1,14 +1,13 @@
 const hre = require("hardhat");
 const fs = require("fs");
 
-const { readDeployments, checkChain, aaveV2Mappings, sampleAmounts } = require("./utils");
+const { readDeployments, aaveV2Mappings } = require("./utils");
 
 const CHAIN_NAME = 'kovan';
-const COLLATERAL_ASSET_USED = aaveV2Mappings.WBTC.address;
-const DEBT_ASSET_USED = aaveV2Mappings.USDC.address;
+
+const CONNEXT_KOVAN_TEST_TOKEN = "0x3FFc03F05D1869f493c7dbf913E636C6280e0ff9";
 
 const main = async () => {
-  await checkChain(CHAIN_NAME);
   const deployedRinkebyData = await readDeployments("rinkeby");
   const deployedKovanData = await readDeployments("kovan");
 
@@ -16,17 +15,22 @@ const main = async () => {
   const local = deployedKovanData;
   console.log(`...setting up the ${CHAIN_NAME} Teleporter`);
   const teleporter = await hre.ethers.getContractAt("Teleporter", local.teleporter.address);
-  let tx1 = await teleporter.setLoanProvider(local.connextDomainId, local.loanProvider.address, true);
-  await tx1.wait();
+  let tx = await teleporter.setLoanProvider(local.connextDomainId, local.loanProvider.address, true);
+  await tx.wait();
   console.log(`...recorded ${local.chain} loan provider`);
   
   const ref = deployedRinkebyData;
-  let tx2 = await teleporter.setLoanProvider(ref.connextDomainId, ref.loanProvider.address, true);
-  await tx2.wait();
+  tx = await teleporter.setLoanProvider(ref.connextDomainId, ref.loanProvider.address, true);
+  await tx.wait();
   console.log(`...recorded ${ref.chain} loan provider`);
-  let tx3 = await teleporter.setTeleporter(ref.connextDomainId, ref.teleporter.address);
-  await tx3.wait();
+  tx = await teleporter.setTeleporter(ref.connextDomainId, ref.teleporter.address);
+  await tx.wait();
   console.log(`...recorded ${ref.chain} teleporter`);
+
+  console.log(`...setting connext ${CHAIN_NAME} test token ${CONNEXT_KOVAN_TEST_TOKEN}`);
+  tx = await teleporter.setTestToken(CONNEXT_KOVAN_TEST_TOKEN);
+  tx.wait();
+  console.log(`...test token set complete!`);
 }
 
 main().catch((error) => {

@@ -31,5 +31,21 @@
     "prettier-plugin-solidity": "^1.0.0-beta.13",
     "solhint": "^3.3.6",
     "solidity-coverage": "^0.7.16"
+  },
+  "scripts": {
+    "network:localhost": "ganache-cli --deterministic --defaultBalanceEther 10000 --chainId 31337",
+    "network:development": "ganache-cli --deterministic --defaultBalanceEther 10000 --port 7545 --chainId 31338",
+    "deploy:step:1": "npx hardhat --network rinkeby run ./scripts/01_deploy_rinkeby.js",
+    "deploy:step:2": "npx hardhat --network kovan run ./scripts/02_deploy_kovan.js",
+    "deploy:step:3": "npx hardhat --network rinkeby run ./scripts/03_setup_rinkeby.js",
+    "deploy:step:4": "npx hardhat --network kovan run ./scripts/04_setup_kovan.js",
+    "deploy:step:5": "npx hardhat --network rinkeby run ./scripts/05_test_setup_rinkeby.js",
+    "deploy:test:1": "npx hardhat --network localhost run ./scripts/01_deploy_rinkeby.js",
+    "deploy:test:2": "npx hardhat --network development run ./scripts/02_deploy_kovan.js",
+    "deploy:test:3": "npx hardhat --network localhost run ./scripts/03_setup_rinkeby.js",
+    "deploy:test:4": "npx hardhat --network development run ./scripts/04_setup_kovan.js",
+    "deploy:test:5": "npx hardhat --network localhost run ./scripts/05_test_setup_rinkeby.js",
+    "deploy:step:all": "yarn deploy:step:1 && yarn deploy:step:2 && yarn deploy:step:3 && yarn deploy:step:4 && yarn deploy:step:5",
+    "deploy:test:all": "yarn deploy:test:1 && yarn deploy:test:2 && yarn deploy:test:3 && yarn deploy:test:4 && yarn deploy:test:5"
   }
 }

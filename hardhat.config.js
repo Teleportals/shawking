@@ -24,6 +24,12 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 module.exports = {
   solidity: "0.8.4",
   networks: {
+    localhost: {
+      url: "http://localhost:8545"
+    },
+    development: {
+      url: "http://localhost:7545"
+    },
     rinkeby: {
       url: process.env.RINKEBY_URL || "",
       accounts:

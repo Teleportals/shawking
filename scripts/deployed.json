@@ -10,5 +10,65 @@
         "address": "0x0290FB167208Af455bB137780163b7B7a9a10C16"
       }
     }
+  ],
+  [
+    {
+      "chain": "kovan",
+      "connextDomainId": 2221,
+      "teleporter": {
+        "address": "0x59d3631c86BbE35EF041872d502F218A39FBa150"
+      },
+      "loanProvider": {
+        "address": "0x0290FB167208Af455bB137780163b7B7a9a10C16"
+      }
+    }
+  ],
+  [
+    {
+      "chain": "rinkeby",
+      "connextDomainId": 1111,
+      "teleporter": {
+        "address": "0x0E696947A06550DEf604e82C26fd9E493e576337"
+      },
+      "loanProvider": {
+        "address": "0xDb56f2e9369E0D7bD191099125a3f6C370F8ed15"
+      }
+    }
+  ],
+  [
+    {
+      "chain": "kovan",
+      "connextDomainId": 2221,
+      "teleporter": {
+        "address": "0x0E696947A06550DEf604e82C26fd9E493e576337"
+      },
+      "loanProvider": {
+        "address": "0xDb56f2e9369E0D7bD191099125a3f6C370F8ed15"
+      }
+    }
+  ],
+  [
+    {
+      "chain": "rinkeby",
+      "connextDomainId": 1111,
+      "teleporter": {
+        "address": "0xD86C8F0327494034F60e25074420BcCF560D5610"
+      },
+      "loanProvider": {
+        "address": "0x4bf749ec68270027C5910220CEAB30Cc284c7BA2"
+      }
+    }
+  ],
+  [
+    {
+      "chain": "kovan",
+      "connextDomainId": 2221,
+      "teleporter": {
+        "address": "0xD86C8F0327494034F60e25074420BcCF560D5610"
+      },
+      "loanProvider": {
+        "address": "0x4bf749ec68270027C5910220CEAB30Cc284c7BA2"
+      }
+    }
   ]
 ]

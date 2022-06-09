@@ -68,7 +68,11 @@ const updateDeployments = async (chain, newDeployData) => {
     deployData = JSON.parse(fs.readFileSync(deploymentsPath).toString());
     let chainData = deployData.find(e => e.chain == chain);
     const index = deployData.findIndex(e => e == chainData);
-    deployData[index] = newDeployData;
+    if (!index) {
+      deployData[index] = newDeployData;
+    } else {
+      deployData.push(newDeployData);
+    }
   } else {
     deployData.push(newDeployData);
   }
@@ -79,8 +83,10 @@ const readDeployments = async (chain) => {
   let deployData;
   if (fs.existsSync(deploymentsPath)) {
     deployData = JSON.parse(fs.readFileSync(deploymentsPath).toString());
+    console.log(chain, "deployData", deployData);
     let chainData = deployData.find(e => e.chain == chain);
     if (!chainData) {
+      console.log("chainData", chainData);
       return chainData;
     } else {
       throw `No deployed data for chain ${chain} found!`;

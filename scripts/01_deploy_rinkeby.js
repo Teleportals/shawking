@@ -1,22 +1,10 @@
 const hre = require("hardhat");
+const fs = require("fs");
 
-const aaveV3Mappings = {
-  WETH: {
-    address: "0xd74047010D77c5901df5b0f9ca518aED56C85e8D",
-    aToken: "0x608D11E704baFb68CfEB154bF7Fd641120e33aD4",
-    debtToken: "0x252C97371c9Ad590898fcDb0C401d9230939A78F",
-  },
-  WBTC: {
-    address: "0x124F70a8a3246F177b0067F435f5691Ee4e467DD",
-    aToken: "0xeC1d8303b8fa33afB59012Fc3b49458B57883326",
-    debtToken: "0x3eA8e63b6e7260C2D6cfc3877914cbB6eE687D6B",
-  },
-  USDC: {
-    address: "0xb18d016cDD2d9439A19f15633005A6b2cd6Aa774",
-    aToken: "0x50b283C17b0Fc2a36c550A57B1a133459F4391B3",
-    debtToken: "0x0EfFd205184FE944f9eF80264b144270dB15eEa7",
-  },
-};
+const {updateDeployments, checkChain, aaveV3Mappings} = require("./utils");
+
+const CHAIN_NAME='rinkeby';
+const CONNEXT_RINKEBY_HANDLER = "0x2307Ed9f152FA9b3DcDfe2385d279D8C2A9DF2b0";
 
 const providers = {
   rinkeby: {
@@ -27,10 +15,11 @@ const providers = {
   },
 };
 
-async function main() {
+const main = async() => {
+  await checkChain(CHAIN_NAME);
   const Teleporter = await hre.ethers.getContractFactory("Teleporter");
   const teleporter = await Teleporter.deploy(
-    "0x2307Ed9f152FA9b3DcDfe2385d279D8C2A9DF2b0"
+    CONNEXT_RINKEBY_HANDLER
   );
 
   await teleporter.deployed();
@@ -53,6 +42,18 @@ async function main() {
     tx = await aavev3.addDebtTokenMapping(asset.address, asset.debtToken);
     await tx.wait();
   }
+  console.log("AaveV3 asset mappings ready!");
+
+  let newdeployData = [
+    {
+      chain: CHAIN_NAME,
+      connextDomainId: 1111,
+      teleporter: {address: teleporter.address},
+      loanProvider: {address: aavev3.address}
+    }
+  ];
+
+  await updateDeployments(CHAIN_NAME, newdeployData);
 }
 
 main().catch((error) => {

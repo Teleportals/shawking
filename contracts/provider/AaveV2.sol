@@ -4,14 +4,14 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interfaces/ILoanProvider.sol";
-import "../interfaces/IAaveV3Pool.sol";
+import "../interfaces/IAaveV2Pool.sol";
 import "../interfaces/IAaveProtocolDataProvider.sol";
 
-contract AaveV3 is ILoanProvider, Ownable {
+contract AaveV2 is ILoanProvider, Ownable {
   address public constant NATIVE_ASSET =
     0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
   
-  IAaveV3Pool public aavePool;
+  IAaveV2Pool public aavePool;
   IAaveProtocolDataProvider public dataProvider;
 
   address public teleporter;
@@ -28,7 +28,7 @@ contract AaveV3 is ILoanProvider, Ownable {
     address _dataProvider
   ) {
     teleporter = _teleporter;
-    aavePool = IAaveV3Pool(_aavePool);
+    aavePool = IAaveV2Pool(_aavePool);
     dataProvider = IAaveProtocolDataProvider(_dataProvider);
   }
 
@@ -37,7 +37,7 @@ contract AaveV3 is ILoanProvider, Ownable {
   }
 
   function setAavePool(address _aavePool) external onlyOwner {
-    aavePool = IAaveV3Pool(_aavePool);
+    aavePool = IAaveV2Pool(_aavePool);
   }
 
   function setDataProvider(address _dataProvider) external onlyOwner {
@@ -63,7 +63,7 @@ contract AaveV3 is ILoanProvider, Ownable {
     address _onBehalfOf
   ) public override {
     IERC20(_asset).approve(address(aavePool), _amount);
-    aavePool.supply(_asset, _amount, _onBehalfOf, 0);
+    aavePool.deposit(_asset, _amount, _onBehalfOf, 0);
   }
 
   /**
@@ -94,15 +94,13 @@ contract AaveV3 is ILoanProvider, Ownable {
     address _onBehalfOf
   ) public override {
     aavePool.borrow(_asset, _amount, 2, 0, _onBehalfOf);
-    IERC20 token = IERC20(_asset);
-    token.transfer(_onBehalfOf, _amount);
   }
 
   /**
    * @dev Payback borrowed ETH/ERC20_Token.
    * @param _asset token address to payback.
    * @param _amount token amount to payback.
-   * @dev requires _amount ERC20 balance transferred to adddress(this).
+   * @dev requires prior ERC20 'approve'.
    */
   function paybackOnBehalf(
     address _asset,

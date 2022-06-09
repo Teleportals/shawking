@@ -12,7 +12,22 @@ import "./interfaces/ILoanProvider.sol";
 import "./interfaces/IExecutor.sol";
 import "./interfaces/IERC20Mintable.sol";
 
+import "./interfaces/IDebtToken.sol";
+
+interface ILPoolExt is ILoanProvider {
+
+  function debtTokenMap(address asset) external view returns(address);
+
+}
+
 contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
+
+  struct DebtPosition {
+    address collateralAsset;
+    address debtAsset;
+    uint collateralAmount;
+    uint debtAmount;
+  }
 
   address public constant NATIVE_ASSET =
     0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
@@ -29,6 +44,8 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
 
   // collateral address => debt address
   mapping(address => address ) public isSupportedPair;
+
+  mapping(address => DebtPosition) public claimablePositions;
 
   bool public xCallArrived;
   uint256 public val;
@@ -51,14 +68,11 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     address debtAssetB,
     uint256 debtAmount
   ) external {
-    loanProviderA;
-    collateralAssetA;
-    debtAssetA;
     // 1.- Checks and input validation
     // 1.1 Check that loan provider addresses and domains (chains) are valid.
     require(
       isLoanProvider[originDomain][loanProviderA] && isLoanProvider[destinationDomain][loanProviderB], 
-      "Wrong Address!"
+      "Wrong Addresses!"
     );
     require(teleporters[destinationDomain] != address(0), "No teleporter!");
     // 1.2 Check there is enough liquidity to initiate loan transfer.
@@ -79,14 +93,14 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
   
     // 4.- Construct arguments for bridging (Connext)
     bytes memory callData = abi.encodeWithSelector(
-    bytes4(keccak256("completeLoanTransfer(uint32,address,address,uint256,address,uint256,address)")),
-    originDomain,
-    loanProviderB,
-    collateralAssetB,
-    collateralAmount,
-    debtAssetB,
-    debtAmount,
-    msg.sender
+      bytes4(keccak256("completeLoanTransfer(uint32,address,address,uint256,address,uint256,address)")),
+      originDomain,
+      loanProviderB,
+      collateralAssetB,
+      collateralAmount,
+      debtAssetB,
+      debtAmount,
+      msg.sender
     );
 
     IConnext.CallParams memory callParams = IConnext.CallParams({
@@ -130,12 +144,18 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
   ) external {
     originDomain;
     loanProviderB;
-    collateralAsset;
-    collateralAmount;
-    debtAsset;
-    user;
+
+    // Sanity checks
     xCallArrived = !xCallArrived;
     val = debtAmount;
+
+    DebtPosition memory dpos = DebtPosition({
+      collateralAsset: collateralAsset,
+      debtAsset: debtAsset,
+      collateralAmount: collateralAmount,
+      debtAmount: debtAmount
+    });
+    claimablePositions[user] = dpos;
     // 1.- check destination and target
     // require(
       // origin domain of the source contract
@@ -148,16 +168,18 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     //   "Expected origin domain contract"
     // );
 
-    // 2.- open debt position
+    // 2.- open debt position by teleporter
     // 2.1 - deposit
-    // ILoanProvider loanProvider = ILoanProvider(loanProviderB);
-    // IER20Mintable(collateralAsset).allocateTo(loanProviderB, collateralAmount);
-    // loanProvider.depositOnBehalf(collateralAsset, collateralAmount, user);
+    ILPoolExt lProvider = ILPoolExt(loanProviderB);
+    // IER20Mintable(collateralAsset).allocateTo(loanProviderB, collateralAmount); // required on Compound Kovan testnet only
+    IERC20Mintable erc20 = IERC20Mintable(collateralAsset);
+    erc20.mint(collateralAmount); // required on AaveV2 Kovan testnet only
+    erc20.approve(address(lProvider), collateralAmount);
+    lProvider.depositOnBehalf(collateralAsset, collateralAmount, address(this));
 
     // 2.2 - borrow
-    // loanProvider.borrowOnBehalf(debtAsset, debtAmount, user);
-
-    // 3.- make position claimable
+    IDebtToken(lProvider.debtTokenMap(debtAsset)).approveDelegation(address(lProvider), debtAmount);
+    lProvider.borrowOnBehalf(debtAsset, debtAmount, address(this));
   }
 
   function setTestToken(address _testToken) external onlyOwner {

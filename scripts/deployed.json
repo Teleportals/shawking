@@ -1,0 +1,14 @@
+[
+  [
+    {
+      "chain": "rinkeby",
+      "connextDomainId": 1111,
+      "teleporter": {
+        "address": "0x59d3631c86BbE35EF041872d502F218A39FBa150"
+      },
+      "loanProvider": {
+        "address": "0x0290FB167208Af455bB137780163b7B7a9a10C16"
+      }
+    }
+  ]
+]

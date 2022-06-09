@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interfaces/ILoanProvider.sol";
-import "../interfaces/IPool.sol";
 import "../interfaces/IAaveProtocolDataProvider.sol";
 import "../interfaces/ICErc20.sol";
 import "../interfaces/ICEth.sol";

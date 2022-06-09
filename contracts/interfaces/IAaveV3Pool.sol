@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-interface IPool {
+interface IAaveV3Pool {
   function supply(
     address asset,
     uint256 amount,

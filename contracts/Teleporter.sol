@@ -22,6 +22,8 @@ interface ILPoolExt is ILoanProvider {
 
 contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
 
+  event TeleporterMarker(address caller);
+
   struct DebtPosition {
     address collateralAsset;
     address debtAsset;
@@ -149,6 +151,8 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     xCallArrived = !xCallArrived;
     val = debtAmount;
 
+    emit TeleporterMarker(msg.sender);
+
     DebtPosition memory dpos = DebtPosition({
       collateralAsset: collateralAsset,
       debtAsset: debtAsset,
@@ -196,6 +200,10 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
 
   function setTeleporter(uint32 _domain, address _teleporter) external onlyOwner {
     teleporters[_domain] = _teleporter;
+  }
+
+  function resetVal() external onlyOwner {
+    val = 0;
   }
 
   function setURI(string memory newuri) external onlyOwner {

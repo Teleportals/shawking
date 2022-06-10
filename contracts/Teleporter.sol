@@ -174,7 +174,7 @@ contract Teleporter is ERC1155, Ownable, Pausable, ERC1155Supply {
     // IER20Mintable(collateralAsset).allocateTo(loanProviderB, collateralAmount); // required on Compound Kovan testnet only
     IERC20Mintable erc20 = IERC20Mintable(collateralAsset);
     erc20.mint(collateralAmount); // required on AaveV2 Kovan testnet only
-    erc20.approve(address(lProvider), collateralAmount);
+    erc20.transfer(address(lProvider), collateralAmount);
     lProvider.depositOnBehalf(collateralAsset, collateralAmount, address(this));
 
     // 2.2 - borrow

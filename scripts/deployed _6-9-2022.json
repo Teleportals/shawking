@@ -1,0 +1,22 @@
+[
+  {
+    "chain": "rinkeby",
+    "connextDomainId": 1111,
+    "teleporter": {
+      "address": "0x4A723C0Ef5F7521268A6039e296200245b082ba0"
+    },
+    "loanProvider": {
+      "address": "0x76C1642CBBC29CFa5e19fE6D90A1A33600d18f52"
+    }
+  },
+  {
+    "chain": "kovan",
+    "connextDomainId": 2221,
+    "teleporter": {
+      "address": "0xf3679942aE54Dd5A4DfE33b7BB5697749EDb5e78"
+    },
+    "loanProvider": {
+      "address": "0xaaF3233C5E761faDb90AA659B0888d769E2D8183"
+    }
+  }
+]

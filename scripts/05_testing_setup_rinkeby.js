@@ -37,26 +37,31 @@ const main = async () => {
   console.log(`...collateral-debt pair set complete!`);
 
   // Add liquidity to the sending teleporter
-  console.log(`...adding liquidity to the sending ${CHAIN_NAME} teleporter`);
+  console.log(`...adding liquidity to the sending ${CHAIN_NAME} teleporter (0/3)`);
   tx = await debtToken.mint(LIQUIDITY_AMOUNT);
   await tx.wait();
+  console.log(`...minted collateral for deployer complete (1/3)!`);
   tx = await debtToken.approve(teleporter.address, LIQUIDITY_AMOUNT);
   await tx.wait();
+  console.log(`...erc20 collateral approved complete (2/3)!`);
   tx = await teleporter.addLiquidity(debtToken.address, LIQUIDITY_AMOUNT, ADDRESS_ZERO);
   await tx.wait();
-  console.log("...adding liquidity complete!");
+  console.log("...adding liquidity complete (3/3)!");
 
   // Open debt position for test user
-  console.log(`...creating debt position for test user!`);
+  console.log(`...creating debt position for test user (0/4)`);
   tx = await collatToken.connect(testUser).mint(COLLATERAL_AMOUNT);
   await tx.wait();
+  console.log(`...minted collateral for test user complete (1/4)!`);
   tx = await collatToken.connect(testUser).approve(realAaveV3.address, COLLATERAL_AMOUNT);
   await tx.wait();
+  console.log(`...erc20 collateral approved complete (2/4)!`);
   tx = await realAaveV3.connect(testUser).supply(collatToken.address, COLLATERAL_AMOUNT, testUser.address, 0);
   await tx.wait();
-  tx = await realAaveV3.connect(testUser).borrow(debtToken.address, DEBT_AMOUNT, 2, 0, testUser.address);
+  console.log(`...deposit on lending provider complete (3/4)!`);
+  tx = await realAaveV3.connect(testUser).borrow(debtToken.address, DEBT_AMOUNT, 2, 0, testUser.address, {gasLimit: 8000000});
   await tx.wait();
-  console.log(`...test user debt position set complete!`);
+  console.log(`...test user debt position set complete (4/4)!`);
 
   // test user approves transfer of aToken asset
   console.log(`...waiting for test user to approves transfer of aToken asset`);

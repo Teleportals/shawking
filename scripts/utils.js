@@ -92,7 +92,7 @@ const testParams = {
     }
   },
   testAmounts: {
-    collateralAmount: hre.ethers.utils.parseUnits("5", 8), // assuming WBTC
+    collateralAmount: hre.ethers.utils.parseUnits("0.25", 8), // assuming WBTC
     liquidityAmount: hre.ethers.utils.parseUnits("10000", 6), // assuming USDC
     debtAmount: hre.ethers.utils.parseUnits("250", 6), // assuming USDC
   }

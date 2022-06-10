@@ -41,7 +41,7 @@
     "deploy:step:2": "npx hardhat --network kovan run ./scripts/02_deploy_kovan.js",
     "deploy:step:3": "npx hardhat --network rinkeby run ./scripts/03_setup_rinkeby.js",
     "deploy:step:4": "npx hardhat --network kovan run ./scripts/04_setup_kovan.js",
-    "deploy:step:5": "npx hardhat --network rinkeby run ./scripts/05_test_setup_rinkeby.js",
+    "deploy:step:5": "npx hardhat --network rinkeby run ./scripts/05_testing_setup_rinkeby.js",
     "deploy:test:1": "npx hardhat --network localhost run ./scripts/01_deploy_rinkeby.js",
     "deploy:test:2": "npx hardhat --network development run ./scripts/02_deploy_kovan.js",
     "deploy:test:3": "npx hardhat --network localhost run ./scripts/03_setup_rinkeby.js",

@@ -36,7 +36,8 @@ const main = async () => {
     testParams.testAmounts.collateralAmount,
     CHAIN_A_DEBT_ASSET,
     CHAIN_B_DEBT_ASSET,
-    testParams.testAmounts.debtAmount
+    testParams.testAmounts.debtAmount,
+    {gasLimit: 8000000}
   );
   await tx.wait();
   console.log(`...xcall submitted!`);

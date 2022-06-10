@@ -3,20 +3,20 @@
     "chain": "rinkeby",
     "connextDomainId": 1111,
     "teleporter": {
-      "address": "0x6495F7e869Ce5638650909EAc2A3725b38aEff5F"
+      "address": "0x49574f32C44B0E2b538159E8255382390EC167eb"
     },
     "loanProvider": {
-      "address": "0xcc51d87A9c998B9E2b4DAa209971f3B7217E7C95"
+      "address": "0x410a59655a6c2F6679Fa4d43fAe9C9a950ce7AE3"
     }
   },
   {
     "chain": "kovan",
     "connextDomainId": 2221,
     "teleporter": {
-      "address": "0x2bF192Ec303b1b5d9F5D2887e337E9e8401EF471"
+      "address": "0xf0e8ef1Abfca9094aa22B0c14260436F1291e301"
     },
     "loanProvider": {
-      "address": "0xB72D0382262F29C9D0B1290eF880691810ACC460"
+      "address": "0x88744837544602c3C2107731F390ea887D09f0b7"
     }
   }
 ]
